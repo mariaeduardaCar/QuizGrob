@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz SIPAT GROB — Corporativo</title>
+    <link rel="icon" type="image/png" href="img/G.png">
+</head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  /* glassmorphism + small utilities */
+  body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+  .glass {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* animations */
+  .fade { transition: all .35s cubic-bezier(.2,.9,.2,1); }
+  .shake { animation: shake .55s ease; }
+  @keyframes shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-6px); }
+    40%, 60% { transform: translateX(6px); }
+  }
+  .pulse-scale { transform-origin: center; animation: pulse-scale .45s ease; }
+  @keyframes pulse-scale {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+
+  /* custom progress */
+  .prog-bg { background: linear-gradient(90deg,#003b75,#0076c8); height: 10px; border-radius: 999px; box-shadow: inset 0 -2px 6px rgba(0,0,0,0.25); }
+
+  /* ranking drawer helper */
+  .drawer-open { transform: translateX(0); }
+  .drawer-closed { transform: translateX(110%); }
+
+  /* button focus */
+  button:focus { outline: 3px solid rgba(0,123,255,0.18); outline-offset: 2px; }
+
+  /* small responsive tweaks */
+  @media (max-width: 640px) {
+    .max-w-xl { margin: 1.5rem; }
+    .drawer-closed { transform: translateX(100%); }
+  }
+</style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-[#03162a] via-[#023b5a] to-[#0b6b3a] flex items-center justify-center p-6">
+<div id="rankingBox"
+    class="fixed bottom-5 left-5 w-72
+           bg-white/10 backdrop-blur-xl
+           shadow-xl rounded-xl p-5
+           border border-white/20
+           text-white">
+
+    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <span class="text-yellow-300 text-xl">🥇</span>
+        Classificação Global
+    </h3>
+
+    <ul id="rankingLista"
+        class="text-sm space-y-2 max-h-64 overflow-y-auto custom-scrollbar-dark">
+    </ul>
+
+    <button onclick="limparRanking()"
+        class="mt-4 w-full bg-gradient-to-r from-[#003B75] to-[#0076C8]
+               hover:brightness-110 text-white font-semibold py-2.5
+               rounded-lg shadow-md transition-all active:scale-95">
+        Limpar Ranking
+    </button>
+</div>
+
+<style>
+/* Scrollbar mais escuro combinando com o fundo */
+.custom-scrollbar-dark::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+    background-color: #ffffff; /* azul escuro */
+    border-radius: 3px;
+}
+.custom-scrollbar-dark::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+}
+</style>
+
+
+
+<!-- MAIN CARD -->
+<main class="relative w-full max-w-xl glass rounded-2xl p-6 shadow-2xl">
+  <!-- Header: logos + avatar -->
+  <header class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <!-- GROB Logo (svg hosted) -->
+      <img src="img/Gemini_Generated_Image_k3ko3dk3ko3dk3ko-removebg-preview.png" alt="GROB" class="h-10" />
+
+      <div>
+        <h1 class="text-white font-extrabold text-2xl leading-tight">Quiz SIPATMA </h1>
+        <p class="text-slate-200 text-sm -mt-0.5">Treine a cultura de segurança</p>
+      </div>
+    </div>
+
+    <!-- Avatar / initials -->
+    <div id="avatarWrap" class="flex items-center gap-3">
+      <div id="avatar" class="w-12 h-12 rounded-full bg-gradient-to-br from-[#003b75] to-[#0076c8] flex items-center justify-center text-white font-bold invisible">
+        JD
+      </div>
+    </div>
+  </header>
+
+  <!-- NAME SCREEN -->
+  <section id="screenName" class="fade">
+    <div class="mb-4">
+      <label class="text-slate-200 block mb-2">Seu nome</label>
+      <input id="nomeInput" 
+       type="text" 
+       placeholder="Digite seu nome" 
+       class="w-full p-3 rounded-lg bg-white/60 border border-white/20 
+              text-black placeholder:text-gray-600" />
+    </div>
+
+    <div class="flex gap-3">
+      <button onclick="iniciarQuiz()" class="flex-1 py-3 rounded-lg bg-gradient-to-r from-[#003b75] to-[#0076c8] text-white font-semibold shadow hover:scale-[1.01] transition">Entrar no Quiz</button>
+    </div>
+  </section>
+
+  <!-- QUIZ SCREEN -->
+  <section id="screenQuiz" class="hidden fade">
+    <!-- top: progress + question index -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="w-3/4">
+        <div class="w-full bg-white/6 rounded-full overflow-hidden">
+          <div id="progressBar" class="prog-bg" style="width:0%"></div>
+        </div>
+        <div class="text-slate-200 text-xs mt-1"><span id="progressText">0%</span> • Pergunta <span id="indiceText">1</span> / 10</div>
+      </div>
+
+      <div class="text-right">
+        <div id="timer" class="text-sm text-slate-200">—</div>
+      </div>
+    </div>
+
+    <article id="questionCard" class="p-5 rounded-xl bg-white/4 border border-white/6 shadow-inner mb-4">
+      <h2 id="pergunta" class="text-white text-lg font-bold leading-snug"></h2>
+      <p id="sub" class="text-slate-200 text-sm mt-2 hidden">Dica: responda com atenção</p>
+    </article>
+
+    <div id="opcoes" class="space-y-3"></div>
+
+    <div class="mt-5 flex items-center justify-between">
+      <button id="btnSkip" onclick="pularPergunta()" class="text-sm text-slate-200/90 bg-white/6 px-3 py-2 rounded-md">Pular</button>
+      <div class="text-slate-200 text-sm">Acertos: <span id="scoreText">0</span></div>
+    </div>
+  </section>
+
+  <!-- RESULT SCREEN -->
+  <section id="screenResult" class="hidden fade text-center">
+    <div class="py-6">
+      <h3 class="text-white text-2xl font-bold mb-2">Resultado final</h3>
+      <p id="resultado" class="text-slate-200 mb-4"></p>
+
+      <div class="mb-4">
+        <button onclick="reiniciar()" class="px-6 py-3 rounded-lg bg-gradient-to-r from-[#003b75] to-[#0076c8] text-white font-semibold mr-3">Jogar novamente</button>
+      </div>
+
+      <div class="text-left">
+        <h4 class="text-white font-semibold mb-2">Seu desempenho</h4>
+        <div class="bg-white/6 p-4 rounded-lg">
+          <div class="flex justify-between text-slate-200"><span>Nome</span><strong id="resNome"></strong></div>
+          <div class="flex justify-between text-slate-200 mt-2"><span>Pontuação</span><strong id="resScore"></strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- SCRIPT -->
+<script>
+/* ---------- DADOS E ESTADO ---------- */
+const perguntasBase = [
+  {
+    q: "Quem é responsável por relatar condições inseguras no local de trabalho?",
+    a: ["Apenas a gerência", "Apenas os funcionários da segurança", "Todos os funcionários", "Apenas o departamento de recursos humanos"],
+    c: 2
+  },
+  {
+    q: "O que fazer ao identificar uma situação perigosa no seu ambiente de trabalho?",
+    a: ["Ignorar e continuar trabalhando", "Relatar imediatamente à gerência e ao departamento de segurança / CIPA", "Esperar até a conclusão da atividade para avisar", "Fazer um reparo por conta própria"],
+    c: 1
+  },
+  {
+    q: "Em que situações utilizamos o kit de contenção de produtos químicos?",
+    a: ["Quando houver vazamento de água no setor", "Em emergências com vazamentos de substâncias químicas perigosas à saúde / meio ambiente", "Em caso de vazamento frequente de algum produto químico", "Para secar piso molhado"],
+    c: 1
+  },
+  {
+    q: "Qual extintor é mais indicado para fogo em equipamentos elétricos?",
+    a: ["Pó químico", "Água", "CO2", "Espuma mecânica"],
+    c: 2
+  },
+  {
+    q: "Qual é o comportamento ideal ao ouvir o alarme de incêndio?",
+    a: ["Ficar em alerta e aguardar orientações da brigada para possível abandono", "Recolher objetos pessoais", "Continuar trabalhando normalmente", "Ligar para o bombeiro"],
+    c: 0
+  },
+  {
+    q: "Em emergências com vítimas nas dependências da GROB, o que fazer?",
+    a: ["Ligar para o SAMU ou bombeiros", "Ligar para o ramal de emergência informando local, vítimas e o que está sendo feito", "Prestar socorro imediatamente sem acionar ninguém", "Esperar alguém tomar alguma ação"],
+    c: 1
+  },
+  {
+    q: "Qual o prazo para comunicação de um acidente de trabalho?",
+    a: ["Até 1 dia útil se for externo e imediatamente se ocorrer dentro da empresa", "Quando a vítima tiver um tempo", "Quando sentir dor no membro lesionado", "Até uma semana após o acidente"],
+    c: 0
+  },
+  {
+    q: "É permitido utilizar o celular durante o deslocamento?",
+    a: ["Não, só parado em local seguro", "Somente em caso de emergência", "Somente no modo viva voz", "Sim, se o trajeto for curto"],
+    c: 0
+  },
+  {
+    q: "Qual é a melhor forma de prevenir lesões por movimentos repetitivos, como tendinite?",
+    a: ["Trabalhar mais horas sem pausas", "Usar mobiliário ergonômico e fazer pausas regulares", "Aumentar a velocidade das tarefas", "Ignorar sinais de desconforto"],
+    c: 1
+  },
+  {
+    q: "Por que funcionários devem relatar incidentes de segurança mesmo sem feridos?",
+    a: ["Para evitar punições", "Para identificar e corrigir perigos antes que causem acidentes", "Para aumentar o tempo de trabalho", "Para ignorar problemas menores"],
+    c: 1
+  },
+  {
+    q: "Qual é a principal causa de acidentes por escorregões e quedas no trabalho?",
+    a: ["Superfícies secas e limpas", "Pavimentos molhados ou com resíduos", "Iluminação excessiva", "Temperaturas elevadas"],
+    c: 1
+  },
+  {
+    q: "O que significa ‘bloqueio e etiquetagem’ (Lockout/Tagout) em segurança industrial?",
+    a: ["Decorar máquinas com etiquetas", "Desligar e bloquear equipamentos para manutenção segura", "Aumentar a velocidade das máquinas", "Ignorar equipamentos defeituosos"],
+    c: 1
+  },
+  {
+    q: "Sobre o uso de adornos (alianças, anéis, brincos, colares, relógios) em áreas operacionais:",
+    a: ["Devo usar para não perder em casa", "Não devo usar, pois oferece riscos à segurança", "Se a luva cobrir, posso usar", "Com protetor auditivo tipo concha posso usar brincos"],
+    c: 1
+  },
+  {
+    q: "Qual documento é necessário para que um EPI seja aprovado para uso?",
+    a: ["Licença de Funcionamento (LF)", "Certificado de Registro (CR)", "Certificado de Aprovação (CA)", "Declaração de Conformidade (DC)"],
+    c: 2
+  },
+  {
+    q: "Em que situações é permitido o uso de fones de ouvido dentro da empresa?",
+    a: ["Durante o horário de almoço", "Para estudar", "Para ouvir música enquanto trabalha", "Não é permitido o uso de fones"],
+    c: 3
+  },
+  {
+    q: "Qual o ramal de emergência da GROB?",
+    a: ["0966", "9666", "6966", "9666"],
+    c: 1
+  },
+  {
+    q: "O que significa a sigla SIPATMA?",
+    a: ["Seminário de Informação para ação de trabalho e meio ambiente", "Semana de interação de proteção ambiental e trabalho de melhorias", "Semana interna de prevenção de acidentes no trabalho e meio ambiente", "Seminário de interação de prevenção de acidentes do trabalho e meio ambiente"],
+    c: 2
+  },
+];
+
+
+// Gera 10 perguntas random (podem repetir itens do base)
+// Embaralha todas as 17 perguntas
+const perguntasEmbaralhadas = [...perguntasBase]
+  .sort(() => Math.random() - 0.5);
+
+// Seleciona apenas as 10 primeiras, sem repetição
+let perguntas = perguntasEmbaralhadas.slice(0, 10);
+
+
+let indice = 0;
+let score = 0;
+let nome = "";
+let tempoPorPergunta = 0; // não usado agora (placeholder)
+
+/* ---------- ELEMENTOS ---------- */
+const screenName = document.getElementById('screenName');
+const screenQuiz = document.getElementById('screenQuiz');
+const screenResult = document.getElementById('screenResult');
+const avatarEl = document.getElementById('avatar');
+const avatarWrap = document.getElementById('avatarWrap');
+const perguntaEl = document.getElementById('pergunta');
+const opcoesEl = document.getElementById('opcoes');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const indiceText = document.getElementById('indiceText');
+const scoreText = document.getElementById('scoreText');
+const resultadoNome = document.getElementById('resNome');
+const resultadoScore = document.getElementById('resScore');
+
+/* ---------- FUNÇÕES UI ---------- */
+function iniciarQuiz() {
+  nome = document.getElementById('nomeInput').value.trim();
+  if (!nome) { alert('Por favor digite seu nome.'); return; }
+
+  // avatar iniciais
+  const iniciais = nome.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+  avatarEl.textContent = iniciais;
+  avatarEl.classList.remove('invisible');
+
+  // tela
+  screenName.classList.add('hidden');
+  screenQuiz.classList.remove('hidden');
+
+  indice = 0;
+  score = 0;
+  atualizarScore();
+  carregarPergunta();
+  exibirRanking(); // atualiza drawer
+}
+
+function carregarPergunta() {
+  const p = perguntas[indice];
+  perguntaEl.textContent = p.q;
+  indiceText.textContent = (indice + 1);
+  progressBar.style.width = `${Math.round((indice/10) * 100)}%`;
+  progressText.textContent = `${Math.round((indice/10)*100)}%`;
+
+  // limpa opcoes
+  opcoesEl.innerHTML = '';
+  p.a.forEach((opc, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'w-full text-left p-3 rounded-lg bg-white/6 text-white hover:bg-white/8 transition flex items-center gap-3 border border-white/6';
+    btn.innerHTML = `<span class="flex-1">${opc}</span><span class="text-xs text-slate-300">Selecionar</span>`;
+    btn.onclick = () => verificarResposta(i, btn);
+    btn.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); verificarResposta(i, btn); } };
+    opcoesEl.appendChild(btn);
+  });
+}
+
+function verificarResposta(i, btn) {
+  const correta = perguntas[indice].c;
+  // desabilita todas
+  const botoes = opcoesEl.querySelectorAll('button');
+  botoes.forEach(b => b.disabled = true);
+
+  if (i === correta) {
+    score++;
+    atualizarScore();
+    // efeito positivo
+    btn.classList.add('pulse-scale');
+    btn.classList.add('bg-gradient-to-r','from-green-500','to-green-600','text-white');
+    setTimeout(()=> btn.classList.remove('pulse-scale'), 450);
+  } else {
+    // efeito negativo
+    btn.classList.add('shake','bg-red-600','text-white');
+    // realçar a correta
+    setTimeout(()=> {
+      // encontra e colore correta
+      botoes.forEach((b, idx) => {
+        if (idx === correta) b.classList.add('bg-green-500','text-white');
+      });
+    }, 120);
+  }
+
+  // avança
+  setTimeout(()=> {
+    indice++;
+    if (indice < 10) {
+      carregarPergunta();
+    } else {
+      mostrarResultado();
+    }
+  }, 850);
+}
+
+function atualizarScore() {
+  scoreText.textContent = score;
+}
+
+function mostrarResultado() {
+  screenQuiz.classList.add('hidden');
+  screenResult.classList.remove('hidden');
+
+  document.getElementById('resultado').textContent = `${nome}, você acertou ${score} de 10!`;
+  resultadoNome.textContent = nome;
+  resultadoScore.textContent = `${score}/10`;
+
+  salvarRanking();
+  exibirRanking();
+}
+
+// --- SALVAR NO LOCALSTORAGE ---
+function salvarRanking() {
+  let ranking = JSON.parse(localStorage.getItem("ranking_grob")) || [];
+
+  ranking.push({ nome, score });
+  ranking.sort((a, b) => b.score - a.score);
+
+  localStorage.setItem("ranking_grob", JSON.stringify(ranking));
+  exibirRanking();
+}
+
+// --- EXIBIR NO QUADRO FIXO ---
+function exibirRanking() {
+  let ranking = JSON.parse(localStorage.getItem("ranking_grob")) || [];
+
+  const lista = document.getElementById("rankingLista");
+  lista.innerHTML = "";
+
+  ranking.slice(0, 10).forEach((item, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<strong>${i+1}º</strong> — ${item.nome} <span class="text-white font-semibold">${item.score}/10</span>`;
+    lista.appendChild(li);
+  });
+}
+
+// --- LIMPAR RANKING ---
+function limparRanking() {
+  localStorage.removeItem("ranking_grob");
+  exibirRanking();
+}
+
+
+/* ---------- AÇÕES ADICIONAIS ---------- */
+function reiniciar() {
+  // simples reload para simplificar
+  location.reload();
+}
+
+function abrirRanking() {
+  document.getElementById('drawer').classList.remove('drawer-closed');
+  document.getElementById('drawer').classList.add('drawer-open');
+}
+
+function toggleDrawer() {
+  const drawer = document.getElementById('drawer');
+  if (!drawer) return console.warn('Drawer não encontrado');
+
+  const isOpen = drawer.classList.contains('drawer-open');
+
+  // garante estado limpo antes de trocar
+  drawer.classList.remove('drawer-open', 'drawer-closed');
+
+  if (isOpen) {
+    drawer.classList.add('drawer-closed');
+  } else {
+    drawer.classList.add('drawer-open');
+    exibirRanking(); // atualiza ranking ao abrir
+  }
+}
+
+
+/* pular (opcional) */
+function pularPergunta() {
+  // permite pular sem penalidade, apenas avança
+  const botoes = opcoesEl.querySelectorAll('button');
+  botoes.forEach(b => b.disabled = true);
+  setTimeout(()=> {
+    indice++;
+    if (indice < 10) carregarPergunta();
+    else mostrarResultado();
+  }, 300);
+}
+
+/* Inicial */
+exibirRanking();
+
+/* Accessibility: permitir Enter no input para iniciar */
+document.getElementById('nomeInput').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') iniciarQuiz();
+});
+</script>
+</body>
+</html>
