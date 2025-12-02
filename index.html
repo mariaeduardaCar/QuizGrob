@@ -13,8 +13,10 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-  /* glassmorphism + small utilities */
-  body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+
   .glass {
     background: rgba(255,255,255,0.06);
     backdrop-filter: blur(8px) saturate(120%);
@@ -22,38 +24,69 @@
     border: 1px solid rgba(255,255,255,0.08);
   }
 
-  /* animations */
+  /* animações */
   .fade { transition: all .35s cubic-bezier(.2,.9,.2,1); }
   .shake { animation: shake .55s ease; }
+
   @keyframes shake {
     10%, 90% { transform: translateX(-2px); }
     20%, 80% { transform: translateX(4px); }
     30%, 50%, 70% { transform: translateX(-6px); }
     40%, 60% { transform: translateX(6px); }
   }
-  .pulse-scale { transform-origin: center; animation: pulse-scale .45s ease; }
+
+  .pulse-scale {
+    transform-origin: center;
+    animation: pulse-scale .45s ease;
+  }
+
   @keyframes pulse-scale {
     0% { transform: scale(1); }
     50% { transform: scale(1.06); }
     100% { transform: scale(1); }
   }
 
-  /* custom progress */
-  .prog-bg { background: linear-gradient(90deg,#003b75,#0076c8); height: 10px; border-radius: 999px; box-shadow: inset 0 -2px 6px rgba(0,0,0,0.25); }
+  .prog-bg {
+    background: linear-gradient(90deg,#003b75,#0076c8);
+    height: 10px;
+    border-radius: 999px;
+  }
 
-  /* ranking drawer helper */
-  .drawer-open { transform: translateX(0); }
-  .drawer-closed { transform: translateX(110%); }
+  /* ranking drawer responsivo */
+  #rankingBox {
+    width: 18rem;
+  }
 
-  /* button focus */
-  button:focus { outline: 3px solid rgba(0,123,255,0.18); outline-offset: 2px; }
+  @media (max-width: 768px) {
+    #rankingBox {
+      width: 90%;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 1rem;
+      padding: 1rem;
+    }
+  }
 
-  /* small responsive tweaks */
+  /* main responsivo */
   @media (max-width: 640px) {
-    .max-w-xl { margin: 1.5rem; }
-    .drawer-closed { transform: translateX(100%); }
+    main {
+      margin: 0;
+      padding: 1rem;
+    }
+    .max-w-xl {
+      margin: 1rem !important;
+    }
+    header h1 {
+      font-size: 1.35rem;
+    }
+    header p {
+      font-size: 0.8rem;
+    }
+    #avatar { width: 2.5rem; height: 2.5rem; }
+    button { font-size: 0.95rem; }
   }
 </style>
+
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-[#03162a] via-[#023b5a] to-[#0b6b3a] flex items-center justify-center p-6">
@@ -98,7 +131,7 @@
 
 
 <!-- MAIN CARD -->
-<main class="relative w-full max-w-xl glass rounded-2xl p-6 shadow-2xl">
+<main class="relative w-full max-w-xl glass rounded-2xl p-6 shadow-2xl mx-auto sm:mx-0">
   <!-- Header: logos + avatar -->
   <header class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
@@ -159,7 +192,6 @@
     <div id="opcoes" class="space-y-3"></div>
 
     <div class="mt-5 flex items-center justify-between">
-      <button id="btnSkip" onclick="pularPergunta()" class="text-sm text-slate-200/90 bg-white/6 px-3 py-2 rounded-md">Pular</button>
       <div class="text-slate-200 text-sm">Acertos: <span id="scoreText">0</span></div>
     </div>
   </section>
@@ -460,17 +492,7 @@ function toggleDrawer() {
 }
 
 
-/* pular (opcional) */
-function pularPergunta() {
-  // permite pular sem penalidade, apenas avança
-  const botoes = opcoesEl.querySelectorAll('button');
-  botoes.forEach(b => b.disabled = true);
-  setTimeout(()=> {
-    indice++;
-    if (indice < 10) carregarPergunta();
-    else mostrarResultado();
-  }, 300);
-}
+
 
 /* Inicial */
 exibirRanking();
